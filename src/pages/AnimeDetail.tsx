@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import Header from "@/components/Header";
+import AnimeCard from "@/components/AnimeCard";
 
 interface AnimeDetail {
   mal_id: number;
@@ -37,9 +38,11 @@ const AnimeDetail = () => {
   const [anime, setAnime] = useState<AnimeDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [showEpisodes, setShowEpisodes] = useState(false);
+  const [relatedAnime, setRelatedAnime] = useState<any[]>([]);
 
   useEffect(() => {
     fetchAnimeDetail();
+    fetchRelatedAnime();
   }, [id]);
 
   const fetchAnimeDetail = async () => {
@@ -52,6 +55,16 @@ const AnimeDetail = () => {
       console.error("Error fetching anime details:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRelatedAnime = async () => {
+    try {
+      const response = await fetch(`https://api.jikan.moe/v4/anime/${id}/recommendations`);
+      const data = await response.json();
+      setRelatedAnime(data.data.slice(0, 10).map((item: any) => item.entry));
+    } catch (error) {
+      console.error("Error fetching related anime:", error);
     }
   };
 
@@ -246,6 +259,23 @@ const AnimeDetail = () => {
               )}
             </div>
           </div>
+
+          {/* Related Anime */}
+          {relatedAnime.length > 0 && (
+            <div className="mt-8 animate-fade-in-up">
+              <h2 className="text-2xl font-bold mb-4">Anime Terkait</h2>
+              <ScrollArea className="w-full">
+                <div className="flex gap-4 pb-4">
+                  {relatedAnime.map((related) => (
+                    <div key={related.mal_id} className="min-w-[200px]">
+                      <AnimeCard anime={related} />
+                    </div>
+                  ))}
+                </div>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+            </div>
+          )}
         </div>
       </div>
     </div>

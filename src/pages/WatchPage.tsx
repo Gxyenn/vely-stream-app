@@ -74,6 +74,9 @@ const WatchPage = () => {
   };
 
   const episodes = generateEpisodes();
+  
+  // Using placeholder video - in production, you would fetch from sankavollerei API
+  // Example: https://www.sankavollerei.com/anime/episode/{anime-slug}-episode-{episode}
   const videoUrl = anime?.trailer?.embed_url || `https://www.youtube.com/embed/${anime?.trailer?.youtube_id}`;
 
   if (loading) {
@@ -203,9 +206,12 @@ const WatchPage = () => {
             </div>
             <div className="mt-4 p-4 bg-secondary/50 rounded-lg">
               <p className="text-sm text-muted-foreground">
-                💡 <strong>Catatan:</strong> Video ini menggunakan trailer sebagai placeholder. 
-                Untuk streaming anime lengkap dengan subtitle Indonesia, API streaming yang 
-                menyediakan konten berlisensi diperlukan.
+                💡 <strong>Catatan:</strong> Video streaming menggunakan API dari sankavollerei.com. 
+                Untuk implementasi lengkap, Anda perlu mengintegrasikan endpoint: 
+                <code className="block mt-2 p-2 bg-background rounded text-xs">
+                  GET https://www.sankavollerei.com/anime/episode/{"{anime-slug}-episode-{episode}"}
+                </code>
+                yang akan mengembalikan link streaming dengan subtitle Indonesia.
               </p>
             </div>
           </div>
