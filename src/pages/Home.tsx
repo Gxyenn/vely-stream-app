@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, TrendingUp, Star } from "lucide-react";
+import { Search, TrendingUp, Star, Calendar, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import AnimeCard from "@/components/AnimeCard";
 import Header from "@/components/Header";
+import { getWatchHistory, WatchHistory } from "@/lib/localStorage";
 
 interface Anime {
   mal_id: number;
@@ -23,27 +25,44 @@ interface Anime {
 const Home = () => {
   const [trending, setTrending] = useState<Anime[]>([]);
   const [popular, setPopular] = useState<Anime[]>([]);
+  const [seasonal, setSeasonal] = useState<Anime[]>([]);
+  const [watchHistory, setWatchHistory] = useState<WatchHistory[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchAnime();
+    setWatchHistory(getWatchHistory());
   }, []);
 
   const fetchAnime = async () => {
     try {
       setLoading(true);
-      const [trendingRes, popularRes] = await Promise.all([
+      
+      // Get current season
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      let season = 'winter';
+      
+      if (month >= 4 && month <= 6) season = 'spring';
+      else if (month >= 7 && month <= 9) season = 'summer';
+      else if (month >= 10 && month <= 12) season = 'fall';
+
+      const [trendingRes, popularRes, seasonalRes] = await Promise.all([
         fetch("https://api.jikan.moe/v4/top/anime?filter=airing&limit=12"),
         fetch("https://api.jikan.moe/v4/top/anime?filter=bypopularity&limit=12"),
+        fetch(`https://api.jikan.moe/v4/seasons/${year}/${season}?limit=12`),
       ]);
 
       const trendingData = await trendingRes.json();
       const popularData = await popularRes.json();
+      const seasonalData = await seasonalRes.json();
 
       setTrending(trendingData.data || []);
       setPopular(popularData.data || []);
+      setSeasonal(seasonalData.data || []);
     } catch (error) {
       console.error("Error fetching anime:", error);
     } finally {
@@ -95,16 +114,49 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Trending Anime */}
-      <section className="px-4 py-12">
-        <div className="container mx-auto">
-          <div className="flex items-center gap-3 mb-8">
-            <TrendingUp className="text-accent w-8 h-8" />
-            <h2 className="text-3xl font-bold">Sedang Trending</h2>
+      <div className="container mx-auto px-4">
+        {/* Watch History Section */}
+        {watchHistory.length > 0 && (
+          <section className="mb-16 animate-fade-in">
+            <div className="flex items-center gap-3 mb-6">
+              <Clock className="w-6 h-6 text-primary" />
+              <h2 className="text-3xl font-bold">Lanjutkan Menonton</h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {watchHistory.slice(0, 6).map((item) => (
+                <div
+                  key={`${item.animeId}-${item.episode}`}
+                  onClick={() => navigate(`/watch/${item.animeId}/${item.episode}`)}
+                  className="cursor-pointer group"
+                >
+                  <div className="relative aspect-[2/3] rounded-lg overflow-hidden card-shadow mb-2">
+                    <img
+                      src={item.animeImage}
+                      alt={item.animeTitle}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-smooth"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <Badge className="absolute bottom-2 right-2 bg-primary">
+                      EP {item.episode}
+                    </Badge>
+                  </div>
+                  <h3 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-smooth">
+                    {item.animeTitle}
+                  </h3>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Seasonal Section */}
+        <section className="mb-16 animate-fade-in-up">
+          <div className="flex items-center gap-3 mb-6">
+            <Calendar className="w-6 h-6 text-primary" />
+            <h2 className="text-3xl font-bold">Anime/Donghua Musim Ini</h2>
           </div>
-          
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {[...Array(12)].map((_, i) => (
                 <div key={i} className="animate-pulse">
                   <div className="aspect-[2/3] bg-secondary rounded-lg" />
@@ -112,25 +164,47 @@ const Home = () => {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {seasonal.map((anime) => (
+                <AnimeCard key={anime.mal_id} anime={anime} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Trending Anime */}
+        <section className="mb-16 animate-fade-in-up">
+          <div className="flex items-center gap-3 mb-6">
+            <TrendingUp className="text-accent w-6 h-6" />
+            <h2 className="text-3xl font-bold">Sedang Trending</h2>
+          </div>
+          
+          {loading ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {[...Array(12)].map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="aspect-[2/3] bg-secondary rounded-lg" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {trending.map((anime) => (
                 <AnimeCard key={anime.mal_id} anime={anime} />
               ))}
             </div>
           )}
-        </div>
-      </section>
+        </section>
 
-      {/* Popular Anime */}
-      <section className="px-4 py-12">
-        <div className="container mx-auto">
-          <div className="flex items-center gap-3 mb-8">
-            <Star className="text-primary w-8 h-8" />
+        {/* Popular Anime */}
+        <section className="mb-16 animate-fade-in-up">
+          <div className="flex items-center gap-3 mb-6">
+            <Star className="text-primary w-6 h-6" />
             <h2 className="text-3xl font-bold">Paling Populer</h2>
           </div>
           
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {[...Array(12)].map((_, i) => (
                 <div key={i} className="animate-pulse">
                   <div className="aspect-[2/3] bg-secondary rounded-lg" />
@@ -138,14 +212,14 @@ const Home = () => {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {popular.map((anime) => (
                 <AnimeCard key={anime.mal_id} anime={anime} />
               ))}
             </div>
           )}
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 };

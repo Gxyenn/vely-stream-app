@@ -5,11 +5,17 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
+import { saveWatchHistory } from "@/lib/localStorage";
 
 interface AnimeDetail {
   mal_id: number;
   title: string;
   episodes: number;
+  images: {
+    jpg: {
+      large_image_url: string;
+    };
+  };
   trailer: {
     youtube_id: string;
     embed_url: string;
@@ -26,6 +32,18 @@ const WatchPage = () => {
   useEffect(() => {
     fetchAnimeDetail();
   }, [id]);
+
+  useEffect(() => {
+    // Save to watch history when episode changes
+    if (anime && id) {
+      saveWatchHistory({
+        animeId: parseInt(id),
+        animeTitle: anime.title,
+        animeImage: anime.images?.jpg?.large_image_url || '',
+        episode: currentEp,
+      });
+    }
+  }, [anime, id, currentEp]);
 
   const fetchAnimeDetail = async () => {
     try {
@@ -75,8 +93,9 @@ const WatchPage = () => {
 
   const episodes = generateEpisodes();
   
-  // Using placeholder video - in production, you would fetch from sankavollerei API
-  // Example: https://www.sankavollerei.com/anime/episode/{anime-slug}-episode-{episode}
+  // Sankavollerei API integration (placeholder - requires anime slug)
+  // Format: https://www.sankavollerei.com/anime/episode/{anime-slug}-episode-{episode}-sub-indo
+  // For donghua: https://www.sankavollerei.com/anime/donghua/episode/{anime-slug}-episode-{episode}-subtitle-indonesia
   const videoUrl = anime?.trailer?.embed_url || `https://www.youtube.com/embed/${anime?.trailer?.youtube_id}`;
 
   if (loading) {

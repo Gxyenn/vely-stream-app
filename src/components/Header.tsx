@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Play } from "lucide-react";
+import { Play, Clock, Heart } from "lucide-react";
 
 const Header = () => {
   return (
@@ -27,6 +27,20 @@ const Header = () => {
               className="text-foreground hover:text-primary transition-smooth font-medium"
             >
               Cari Anime
+            </Link>
+            <Link
+              to="/my-list"
+              className="flex items-center gap-2 text-foreground hover:text-primary transition-smooth font-medium"
+            >
+              <Heart className="w-4 h-4" />
+              List Saya
+            </Link>
+            <Link
+              to="/history"
+              className="flex items-center gap-2 text-foreground hover:text-primary transition-smooth font-medium"
+            >
+              <Clock className="w-4 h-4" />
+              History
             </Link>
           </nav>
         </div>

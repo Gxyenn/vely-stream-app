@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Star, Tv, Calendar, Clock, Play, ChevronRight } from "lucide-react";
+import { ArrowLeft, Star, Tv, Calendar, Clock, Play, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import AnimeCard from "@/components/AnimeCard";
+import { addToMyList, removeFromMyList, isInMyList } from "@/lib/localStorage";
 
 interface AnimeDetail {
   mal_id: number;
@@ -39,10 +41,14 @@ const AnimeDetail = () => {
   const [loading, setLoading] = useState(true);
   const [showEpisodes, setShowEpisodes] = useState(false);
   const [relatedAnime, setRelatedAnime] = useState<any[]>([]);
+  const [inMyList, setInMyList] = useState(false);
 
   useEffect(() => {
     fetchAnimeDetail();
     fetchRelatedAnime();
+    if (id) {
+      setInMyList(isInMyList(parseInt(id)));
+    }
   }, [id]);
 
   const fetchAnimeDetail = async () => {
@@ -77,6 +83,30 @@ const AnimeDetail = () => {
   const generateEpisodes = () => {
     if (!anime?.episodes) return [];
     return Array.from({ length: anime.episodes }, (_, i) => i + 1);
+  };
+
+  const handleToggleMyList = () => {
+    if (!anime) return;
+
+    if (inMyList) {
+      removeFromMyList(anime.mal_id);
+      setInMyList(false);
+      toast({
+        title: "Dihapus dari List",
+        description: `${anime.title} telah dihapus dari list Anda`,
+      });
+    } else {
+      addToMyList({
+        animeId: anime.mal_id,
+        animeTitle: anime.title,
+        animeImage: anime.images.jpg.large_image_url,
+      });
+      setInMyList(true);
+      toast({
+        title: "Ditambahkan ke List",
+        description: `${anime.title} telah ditambahkan ke list Anda`,
+      });
+    }
   };
 
   if (loading) {
@@ -175,7 +205,7 @@ const AnimeDetail = () => {
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-4 justify-center mb-8 animate-fade-in-up">
+          <div className="flex gap-4 justify-center mb-8 animate-fade-in-up flex-wrap">
             {anime.trailer?.youtube_id && (
               <Button
                 onClick={handleWatchTrailer}
@@ -194,6 +224,19 @@ const AnimeDetail = () => {
             >
               <Tv className="w-5 h-5 mr-2" />
               Show Episodes
+            </Button>
+            <Button
+              onClick={handleToggleMyList}
+              variant="outline"
+              className={`px-8 ${
+                inMyList
+                  ? "border-pink-500 text-pink-500 hover:bg-pink-500/10"
+                  : "border-primary/40 hover:bg-primary/10"
+              }`}
+              size="lg"
+            >
+              <Heart className={`w-5 h-5 mr-2 ${inMyList ? "fill-pink-500" : ""}`} />
+              {inMyList ? "Di List Saya" : "Tambah ke List"}
             </Button>
           </div>
 

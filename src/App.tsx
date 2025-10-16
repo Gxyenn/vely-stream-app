@@ -7,6 +7,8 @@ import Home from "./pages/Home";
 import AnimeDetail from "./pages/AnimeDetail";
 import SearchPage from "./pages/SearchPage";
 import WatchPage from "./pages/WatchPage";
+import MyList from "./pages/MyList";
+import History from "./pages/History";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +24,8 @@ const App = () => (
           <Route path="/anime/:id" element={<AnimeDetail />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/watch/:id/:episode" element={<WatchPage />} />
+          <Route path="/my-list" element={<MyList />} />
+          <Route path="/history" element={<History />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
