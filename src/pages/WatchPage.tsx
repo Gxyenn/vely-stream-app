@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { saveWatchHistory } from "@/lib/localStorage";
 
 interface AnimeDetail {
@@ -167,47 +168,47 @@ const WatchPage = () => {
           </div>
 
           {/* Episode Navigation */}
-          <div className="flex items-center gap-4 mb-6 animate-fade-in-up">
-            <Button
-              onClick={() => handleEpisodeChange(currentEp - 1)}
-              disabled={currentEp <= 1}
-              variant="outline"
-              className="border-primary/40 hover:bg-primary/10"
-            >
-              <ChevronLeft className="w-4 h-4 mr-2" />
-              Sebelumnya
-            </Button>
+          <div className="mb-6 animate-fade-in-up">
+            <div className="flex items-center gap-4 mb-4">
+              <Button
+                onClick={() => handleEpisodeChange(currentEp - 1)}
+                disabled={currentEp <= 1}
+                variant="outline"
+                className="border-primary/40 hover:bg-primary/10 shrink-0"
+              >
+                <ChevronLeft className="w-4 h-4 mr-2" />
+                Sebelumnya
+              </Button>
 
-            <div className="flex-1">
-              <ScrollArea className="w-full">
-                <div className="flex gap-3 pb-4">
-                  {episodes.map((ep) => (
-                    <Button
-                      key={ep}
-                      onClick={() => handleEpisodeChange(ep)}
-                      className={`min-w-[80px] h-12 transition-smooth ${
-                        ep === currentEp
-                          ? "gradient-primary glow-effect"
-                          : "gradient-card hover:gradient-primary"
-                      }`}
-                    >
-                      EP {ep}
-                    </Button>
-                  ))}
-                </div>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
+              <Button
+                onClick={() => handleEpisodeChange(currentEp + 1)}
+                disabled={!anime?.episodes || currentEp >= anime.episodes}
+                variant="outline"
+                className="border-primary/40 hover:bg-primary/10 shrink-0"
+              >
+                Selanjutnya
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
             </div>
 
-            <Button
-              onClick={() => handleEpisodeChange(currentEp + 1)}
-              disabled={!anime?.episodes || currentEp >= anime.episodes}
-              variant="outline"
-              className="border-primary/40 hover:bg-primary/10"
-            >
-              Selanjutnya
-              <ChevronRight className="w-4 h-4 ml-2" />
-            </Button>
+            <ScrollArea className="w-full whitespace-nowrap rounded-lg border border-primary/20">
+              <div className="flex gap-3 p-4">
+                {episodes.map((ep) => (
+                  <Button
+                    key={ep}
+                    onClick={() => handleEpisodeChange(ep)}
+                    className={`min-w-[80px] h-12 transition-smooth shrink-0 ${
+                      ep === currentEp
+                        ? "gradient-primary glow-effect"
+                        : "gradient-card hover:gradient-primary"
+                    }`}
+                  >
+                    EP {ep}
+                  </Button>
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           </div>
 
           {/* Additional Info */}
@@ -236,6 +237,8 @@ const WatchPage = () => {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import AnimeCard from "@/components/AnimeCard";
 import { addToMyList, removeFromMyList, isInMyList } from "@/lib/localStorage";
 
@@ -66,11 +67,28 @@ const AnimeDetail = () => {
 
   const fetchRelatedAnime = async () => {
     try {
-      const response = await fetch(`https://api.jikan.moe/v4/anime/${id}/recommendations`);
+      const response = await fetch(`https://api.jikan.moe/v4/anime/${id}/relations`);
       const data = await response.json();
-      setRelatedAnime(data.data.slice(0, 10).map((item: any) => item.entry));
+      
+      // Flatten all related anime from different relation types (sequels, prequels, side stories, etc.)
+      const allRelated: any[] = [];
+      data.data.forEach((relation: any) => {
+        if (relation.entry) {
+          relation.entry.forEach((entry: any) => {
+            if (entry.type === 'anime') {
+              allRelated.push({
+                ...entry,
+                relation_type: relation.relation
+              });
+            }
+          });
+        }
+      });
+      
+      setRelatedAnime(allRelated.slice(0, 12));
     } catch (error) {
       console.error("Error fetching related anime:", error);
+      setRelatedAnime([]);
     }
   };
 
@@ -321,6 +339,8 @@ const AnimeDetail = () => {
           )}
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };

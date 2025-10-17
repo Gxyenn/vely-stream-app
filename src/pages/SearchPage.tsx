@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import AnimeCard from "@/components/AnimeCard";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 interface Anime {
   mal_id: number;
@@ -115,6 +116,8 @@ const SearchPage = () => {
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 };

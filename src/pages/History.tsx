@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { getWatchHistory, clearWatchHistory, WatchHistory as WatchHistoryType } from "@/lib/localStorage";
 
 const History = () => {
@@ -117,6 +118,8 @@ const History = () => {
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 };

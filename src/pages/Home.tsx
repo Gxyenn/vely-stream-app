@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import AnimeCard from "@/components/AnimeCard";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { getWatchHistory, WatchHistory } from "@/lib/localStorage";
 
 interface Anime {
@@ -82,7 +83,7 @@ const Home = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative px-4 py-20 overflow-hidden">
+      <section className="relative px-4 py-16 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/20 via-background to-background" />
         <div className="container mx-auto relative z-10">
           <div className="max-w-3xl mx-auto text-center animate-fade-in-up">
@@ -92,27 +93,29 @@ const Home = () => {
             <p className="text-xl text-muted-foreground mb-8">
               Nonton Anime Sub Indo Gratis & Lengkap
             </p>
-            
-            {/* Search Bar */}
-            <form onSubmit={handleSearch} className="relative max-w-xl mx-auto">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Cari anime favoritmu..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-14 text-lg glass-effect border-primary/20 focus:border-primary"
-              />
-              <Button
-                type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 gradient-primary"
-              >
-                Cari
-              </Button>
-            </form>
           </div>
         </div>
       </section>
+
+      {/* Search Bar Section */}
+      <div className="container mx-auto px-4 -mt-8 mb-12">
+        <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto animate-fade-in">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground z-10" />
+          <Input
+            type="text"
+            placeholder="Cari anime favoritmu..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-12 pr-24 h-14 text-lg glass-effect border-primary/20 focus:border-primary"
+          />
+          <Button
+            type="submit"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 gradient-primary"
+          >
+            Cari
+          </Button>
+        </form>
+      </div>
 
       <div className="container mx-auto px-4">
         {/* Watch History Section */}
@@ -220,6 +223,8 @@ const Home = () => {
           )}
         </section>
       </div>
+
+      <Footer />
     </div>
   );
 };

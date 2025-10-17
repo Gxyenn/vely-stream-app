@@ -4,6 +4,7 @@ import { Heart, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { getMyList, removeFromMyList, MyListItem } from "@/lib/localStorage";
 
 const MyList = () => {
@@ -74,6 +75,8 @@ const MyList = () => {
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 };
