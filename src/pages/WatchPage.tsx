@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import NavigationBar from "@/components/NavigationBar";
 import Footer from "@/components/Footer";
 import { saveWatchHistory } from "@/lib/localStorage";
+import AnimeCard from "@/components/AnimeCard";
 
 interface AnimeDetail {
   mal_id: number;
@@ -28,11 +29,13 @@ const WatchPage = () => {
   const { id, episode } = useParams();
   const navigate = useNavigate();
   const [anime, setAnime] = useState<AnimeDetail | null>(null);
+  const [recommendedAnime, setRecommendedAnime] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const currentEp = parseInt(episode || "1");
 
   useEffect(() => {
     fetchAnimeDetail();
+    fetchRecommendedAnime();
   }, [id]);
 
   useEffect(() => {
@@ -60,9 +63,22 @@ const WatchPage = () => {
     }
   };
 
+  const fetchRecommendedAnime = async () => {
+    try {
+      const response = await fetch(
+        "https://api.jikan.moe/v4/top/anime?filter=bypopularity&limit=12"
+      );
+      const data = await response.json();
+      setRecommendedAnime(data.data || []);
+    } catch (error) {
+      console.error("Error fetching recommended anime:", error);
+    }
+  };
+
   const generateEpisodes = () => {
-    if (!anime?.episodes) return [];
-    return Array.from({ length: anime.episodes }, (_, i) => i + 1);
+    // Ensure we use the correct episode count for this specific season/entry
+    const episodeCount = anime?.episodes || 12; // Default to 12 if not available
+    return Array.from({ length: episodeCount }, (_, i) => i + 1);
   };
 
   const handleEpisodeChange = (ep: number) => {
@@ -70,24 +86,47 @@ const WatchPage = () => {
   };
 
   const handleDownload = () => {
+    // Video download functionality
+    const downloadUrl = videoUrl;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `${anime?.title}-episode-${currentEp}.mp4`;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
     toast({
-      title: "Download",
-      description: "Fitur download akan segera tersedia!",
+      title: "Download Dimulai",
+      description: `Mengunduh ${anime?.title} Episode ${currentEp}`,
     });
   };
 
   const handleShare = async () => {
-    const url = window.location.href;
+    const shareData = {
+      title: `${anime?.title} - Episode ${currentEp}`,
+      text: `Tonton ${anime?.title} Episode ${currentEp}`,
+      url: window.location.href
+    };
+
     try {
-      await navigator.clipboard.writeText(url);
-      toast({
-        title: "Link Disalin!",
-        description: "Link episode telah disalin ke clipboard",
-      });
+      if (navigator.share) {
+        await navigator.share(shareData);
+        toast({
+          title: "Dibagikan!",
+          description: "Episode berhasil dibagikan",
+        });
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: "Link Disalin!",
+          description: "Link episode telah disalin ke clipboard",
+        });
+      }
     } catch (error) {
       toast({
         title: "Gagal",
-        description: "Tidak dapat menyalin link",
+        description: "Tidak dapat membagikan link",
         variant: "destructive",
       });
     }
@@ -215,8 +254,8 @@ const WatchPage = () => {
           </div>
 
           {/* Additional Info */}
-          <div className="glass-effect rounded-lg p-6 animate-fade-in-up">
-            <h3 className="text-xl font-bold mb-4">Informasi</h3>
+          <div className="glass-effect rounded-lg p-6 animate-fade-in-up mb-8">
+            <h3 className="text-xl font-bold mb-4">Informasi Episode</h3>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Total Episode</p>
@@ -227,16 +266,21 @@ const WatchPage = () => {
                 <p className="font-medium">Episode {currentEp}</p>
               </div>
             </div>
-            <div className="mt-4 p-4 bg-secondary/50 rounded-lg">
-              <p className="text-sm text-muted-foreground">
-                💡 <strong>Catatan:</strong> Video streaming menggunakan API dari sankavollerei.com. 
-                Untuk implementasi lengkap, Anda perlu mengintegrasikan endpoint: 
-                <code className="block mt-2 p-2 bg-background rounded text-xs">
-                  GET https://www.sankavollerei.com/anime/episode/{"{anime-slug}-episode-{episode}"}
-                </code>
-                yang akan mengembalikan link streaming dengan subtitle Indonesia.
-              </p>
-            </div>
+          </div>
+
+          {/* Recommended Anime */}
+          <div className="animate-fade-in-up">
+            <h3 className="text-2xl font-bold mb-6">Anime Populer & Rekomendasi</h3>
+            <ScrollArea className="w-full whitespace-nowrap rounded-lg">
+              <div className="flex gap-4 pb-4">
+                {recommendedAnime.map((recAnime) => (
+                  <div key={recAnime.mal_id} className="w-[200px] shrink-0">
+                    <AnimeCard anime={recAnime} />
+                  </div>
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           </div>
         </div>
       </div>
