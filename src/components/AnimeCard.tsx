@@ -6,19 +6,24 @@ interface AnimeCardProps {
   anime: {
     mal_id: number;
     title: string;
-    images: {
+    name?: string;
+    images?: {
       jpg: {
         large_image_url: string;
       };
     };
-    score: number;
-    episodes: number;
-    status: string;
+    score?: number;
+    episodes?: number;
+    status?: string;
   };
   showNewBadge?: boolean;
 }
 
 const AnimeCard = ({ anime, showNewBadge = false }: AnimeCardProps) => {
+  const imageUrl = anime.images?.jpg?.large_image_url || '/placeholder.svg';
+  const title = anime.title || anime.name || 'Unknown';
+  const score = anime.score || 0;
+  
   return (
     <Link
       to={`/anime/${anime.mal_id}`}
@@ -26,8 +31,8 @@ const AnimeCard = ({ anime, showNewBadge = false }: AnimeCardProps) => {
     >
       <div className="relative aspect-[2/3] rounded-lg overflow-hidden card-shadow anime-card">
         <img
-          src={anime.images.jpg.large_image_url}
-          alt={anime.title}
+          src={imageUrl}
+          alt={title}
           className="w-full h-full object-cover transition-smooth group-hover:scale-110"
           loading="lazy"
         />
@@ -38,10 +43,10 @@ const AnimeCard = ({ anime, showNewBadge = false }: AnimeCardProps) => {
         {/* Info Overlay */}
         <div className="absolute inset-0 p-4 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-smooth">
           <div className="flex items-center gap-2 text-sm">
-            {anime.score > 0 && (
+            {score > 0 && (
               <div className="flex items-center gap-1 bg-primary/90 px-2 py-1 rounded">
                 <Star className="w-3 h-3 fill-current" />
-                <span className="font-bold">{anime.score}</span>
+                <span className="font-bold">{score}</span>
               </div>
             )}
             {anime.episodes && (
@@ -67,16 +72,16 @@ const AnimeCard = ({ anime, showNewBadge = false }: AnimeCardProps) => {
         )}
 
         {/* Score Badge - Always Visible */}
-        {anime.score > 0 && (
+        {score > 0 && (
           <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/70 px-2 py-1 rounded backdrop-blur-sm">
             <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-bold">{anime.score}</span>
+            <span className="text-sm font-bold">{score}</span>
           </div>
         )}
       </div>
 
       <h3 className="mt-3 font-semibold text-sm line-clamp-2 group-hover:text-primary transition-smooth">
-        {anime.title}
+        {title}
       </h3>
     </Link>
   );
