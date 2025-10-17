@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
+import NavigationBar from "@/components/NavigationBar";
 import Footer from "@/components/Footer";
 import { getWatchHistory, clearWatchHistory, WatchHistory as WatchHistoryType } from "@/lib/localStorage";
 
@@ -42,6 +43,7 @@ const History = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <NavigationBar />
 
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">

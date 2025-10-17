@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import AnimeCard from "@/components/AnimeCard";
 import Header from "@/components/Header";
+import NavigationBar from "@/components/NavigationBar";
 import Footer from "@/components/Footer";
 
 interface Anime {
@@ -62,6 +63,7 @@ const SearchPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <NavigationBar />
 
       <div className="container mx-auto px-4 py-8">
         {/* Search Bar */}

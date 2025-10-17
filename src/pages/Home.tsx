@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import AnimeCard from "@/components/AnimeCard";
 import Header from "@/components/Header";
+import NavigationBar from "@/components/NavigationBar";
 import Footer from "@/components/Footer";
 import { getWatchHistory, WatchHistory } from "@/lib/localStorage";
 
@@ -81,6 +82,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <NavigationBar />
 
       {/* Hero Section */}
       <section className="relative px-4 py-16 overflow-hidden">

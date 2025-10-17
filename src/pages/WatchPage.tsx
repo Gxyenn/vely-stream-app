@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
+import NavigationBar from "@/components/NavigationBar";
 import Footer from "@/components/Footer";
 import { saveWatchHistory } from "@/lib/localStorage";
 
@@ -103,6 +104,7 @@ const WatchPage = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
+        <NavigationBar />
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse">
             <div className="aspect-video bg-secondary rounded-lg" />
@@ -115,6 +117,7 @@ const WatchPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <NavigationBar />
 
       <div className="container mx-auto px-4 py-8">
         {/* Back Button */}

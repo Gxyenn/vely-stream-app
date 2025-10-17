@@ -4,6 +4,7 @@ import { Heart, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
+import NavigationBar from "@/components/NavigationBar";
 import Footer from "@/components/Footer";
 import { getMyList, removeFromMyList, MyListItem } from "@/lib/localStorage";
 
@@ -27,6 +28,7 @@ const MyList = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <NavigationBar />
 
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-8">

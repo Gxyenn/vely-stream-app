@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
+import NavigationBar from "@/components/NavigationBar";
 import Footer from "@/components/Footer";
 import AnimeCard from "@/components/AnimeCard";
 import { addToMyList, removeFromMyList, isInMyList } from "@/lib/localStorage";
@@ -157,6 +158,7 @@ const AnimeDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <NavigationBar />
 
       <div className="container mx-auto px-4 py-8">
         {/* Back Button */}
