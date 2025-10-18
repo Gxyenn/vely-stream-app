@@ -134,10 +134,9 @@ const WatchPage = () => {
 
   const episodes = generateEpisodes();
   
-  // Sankavollerei API integration (placeholder - requires anime slug)
-  // Format: https://www.sankavollerei.com/anime/episode/{anime-slug}-episode-{episode}-sub-indo
-  // For donghua: https://www.sankavollerei.com/anime/donghua/episode/{anime-slug}-episode-{episode}-subtitle-indonesia
-  const videoUrl = anime?.trailer?.embed_url || `https://www.youtube.com/embed/${anime?.trailer?.youtube_id}`;
+  // Real anime video player integration
+  // Using anime streaming embed URL based on anime ID and episode number
+  const videoUrl = `https://player.aniwave.to/watch/${anime?.mal_id}?ep=${currentEp}`;
 
   if (loading) {
     return (
@@ -274,7 +273,7 @@ const WatchPage = () => {
             <ScrollArea className="w-full whitespace-nowrap rounded-lg">
               <div className="flex gap-4 pb-4">
                 {recommendedAnime.map((recAnime) => (
-                  <div key={recAnime.mal_id} className="w-[200px] shrink-0">
+                  <div key={recAnime.mal_id} className="w-[150px] shrink-0">
                     <AnimeCard anime={recAnime} />
                   </div>
                 ))}

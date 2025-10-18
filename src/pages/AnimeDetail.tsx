@@ -330,7 +330,7 @@ const AnimeDetail = () => {
               <ScrollArea className="w-full">
                 <div className="flex gap-4 pb-4">
                   {relatedAnime.map((related) => (
-                    <div key={related.mal_id} className="min-w-[200px]">
+                    <div key={related.mal_id} className="w-[150px] shrink-0">
                       <AnimeCard anime={related} />
                     </div>
                   ))}
