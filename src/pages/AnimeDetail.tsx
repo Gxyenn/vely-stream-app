@@ -70,11 +70,50 @@ const AnimeDetail = () => {
 
   const fetchRelatedAnime = async () => {
     try {
-      const response = await fetch(`https://api.jikan.moe/v4/anime/${id}/recommendations`);
-      const data = await response.json();
+      // First try to get relations (sequels, prequels, side stories, etc.)
+      const relationsRes = await fetch(`https://api.jikan.moe/v4/anime/${id}/relations`);
+      const relationsData = await relationsRes.json();
       
-      // Get recommended anime with full data including images
-      const recommended = (data.data || [])
+      // Extract all related anime from relations
+      const relatedFromRelations: any[] = [];
+      if (relationsData.data && Array.isArray(relationsData.data)) {
+        relationsData.data.forEach((relation: any) => {
+          if (relation.entry && Array.isArray(relation.entry)) {
+            relation.entry.forEach((entry: any) => {
+              if (entry.type === 'anime' && entry.mal_id) {
+                relatedFromRelations.push(entry);
+              }
+            });
+          }
+        });
+      }
+
+      if (relatedFromRelations.length > 0) {
+        // Fetch full data for related anime to get images
+        const animePromises = relatedFromRelations.slice(0, 12).map(async (entry: any) => {
+          try {
+            const res = await fetch(`https://api.jikan.moe/v4/anime/${entry.mal_id}`);
+            const json = await res.json();
+            return json.data;
+          } catch {
+            return null;
+          }
+        });
+        
+        const animeResults = await Promise.all(animePromises);
+        const validAnime = animeResults.filter((anime) => anime && anime.images);
+        
+        if (validAnime.length > 0) {
+          setRelatedAnime(validAnime);
+          return;
+        }
+      }
+
+      // Fallback to recommendations if no relations found
+      const recResponse = await fetch(`https://api.jikan.moe/v4/anime/${id}/recommendations`);
+      const recData = await recResponse.json();
+      
+      const recommended = (recData.data || [])
         .slice(0, 12)
         .map((item: any) => item.entry)
         .filter((entry: any) => entry && entry.images);
@@ -84,7 +123,7 @@ const AnimeDetail = () => {
         return;
       }
 
-      // Fallback: show popular airing anime if recommendations are empty
+      // Final fallback: show popular airing anime
       const fallbackRes = await fetch("https://api.jikan.moe/v4/top/anime?filter=airing&limit=12");
       const fallbackData = await fallbackRes.json();
       setRelatedAnime(fallbackData.data || []);
