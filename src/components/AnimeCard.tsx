@@ -8,8 +8,13 @@ interface AnimeCardProps {
     title: string;
     name?: string;
     images?: {
-      jpg: {
-        large_image_url: string;
+      jpg?: {
+        large_image_url?: string;
+        image_url?: string;
+      };
+      webp?: {
+        large_image_url?: string;
+        image_url?: string;
       };
     };
     score?: number;
@@ -20,7 +25,12 @@ interface AnimeCardProps {
 }
 
 const AnimeCard = ({ anime, showNewBadge = false }: AnimeCardProps) => {
-  const imageUrl = anime.images?.jpg?.large_image_url || '/placeholder.svg';
+  const imageUrl =
+    anime.images?.jpg?.large_image_url ||
+    anime.images?.jpg?.image_url ||
+    anime.images?.webp?.large_image_url ||
+    anime.images?.webp?.image_url ||
+    '/placeholder.svg';
   const title = anime.title || anime.name || 'Unknown';
   const score = anime.score || 0;
   

@@ -44,10 +44,12 @@ const AnimeDetail = () => {
   const [showEpisodes, setShowEpisodes] = useState(false);
   const [relatedAnime, setRelatedAnime] = useState<any[]>([]);
   const [inMyList, setInMyList] = useState(false);
+  const [airedEpisodeCount, setAiredEpisodeCount] = useState<number>(0);
 
   useEffect(() => {
     fetchAnimeDetail();
     fetchRelatedAnime();
+    fetchAiredEpisodes();
     if (id) {
       setInMyList(isInMyList(parseInt(id)));
     }
@@ -72,15 +74,37 @@ const AnimeDetail = () => {
       const data = await response.json();
       
       // Get recommended anime with full data including images
-      const recommended = data.data
+      const recommended = (data.data || [])
         .slice(0, 12)
         .map((item: any) => item.entry)
         .filter((entry: any) => entry && entry.images);
       
-      setRelatedAnime(recommended);
+      if (recommended.length > 0) {
+        setRelatedAnime(recommended);
+        return;
+      }
+
+      // Fallback: show popular airing anime if recommendations are empty
+      const fallbackRes = await fetch("https://api.jikan.moe/v4/top/anime?filter=airing&limit=12");
+      const fallbackData = await fallbackRes.json();
+      setRelatedAnime(fallbackData.data || []);
     } catch (error) {
       console.error("Error fetching related anime:", error);
       setRelatedAnime([]);
+    }
+  };
+
+  const fetchAiredEpisodes = async () => {
+    try {
+      const res = await fetch(`https://api.jikan.moe/v4/anime/${id}/episodes?limit=100`);
+      const json = await res.json();
+      const list = Array.isArray(json.data) ? json.data : [];
+      // Count only episodes with aired date available
+      const aired = list.filter((ep: any) => ep.aired).length || list.length;
+      setAiredEpisodeCount(aired);
+    } catch (err) {
+      console.error("Error fetching episodes:", err);
+      setAiredEpisodeCount(0);
     }
   };
 
@@ -91,8 +115,9 @@ const AnimeDetail = () => {
   };
 
   const generateEpisodes = () => {
-    if (!anime?.episodes) return [];
-    return Array.from({ length: anime.episodes }, (_, i) => i + 1);
+    const count = airedEpisodeCount || anime?.episodes || 0;
+    if (count <= 0) return [];
+    return Array.from({ length: count }, (_, i) => i + 1);
   };
 
   const handleToggleMyList = () => {
@@ -191,10 +216,10 @@ const AnimeDetail = () => {
                 <span className="text-lg font-bold">{anime.score}</span>
               </div>
             )}
-            {anime.episodes && (
+            {(airedEpisodeCount || anime.episodes) && (
               <div className="flex items-center gap-2 bg-secondary px-4 py-2 rounded-lg">
                 <Tv className="w-5 h-5" />
-                <span className="font-medium">{anime.episodes} Episodes</span>
+                <span className="font-medium">{airedEpisodeCount || anime.episodes} Episodes</span>
               </div>
             )}
             {anime.status && (
