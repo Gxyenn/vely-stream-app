@@ -68,25 +68,16 @@ const AnimeDetail = () => {
 
   const fetchRelatedAnime = async () => {
     try {
-      const response = await fetch(`https://api.jikan.moe/v4/anime/${id}/relations`);
+      const response = await fetch(`https://api.jikan.moe/v4/anime/${id}/recommendations`);
       const data = await response.json();
       
-      // Flatten all related anime from different relation types (sequels, prequels, side stories, etc.)
-      const allRelated: any[] = [];
-      data.data.forEach((relation: any) => {
-        if (relation.entry) {
-          relation.entry.forEach((entry: any) => {
-            if (entry.type === 'anime') {
-              allRelated.push({
-                ...entry,
-                relation_type: relation.relation
-              });
-            }
-          });
-        }
-      });
+      // Get recommended anime with full data including images
+      const recommended = data.data
+        .slice(0, 12)
+        .map((item: any) => item.entry)
+        .filter((entry: any) => entry && entry.images);
       
-      setRelatedAnime(allRelated.slice(0, 12));
+      setRelatedAnime(recommended);
     } catch (error) {
       console.error("Error fetching related anime:", error);
       setRelatedAnime([]);

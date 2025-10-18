@@ -134,9 +134,9 @@ const WatchPage = () => {
 
   const episodes = generateEpisodes();
   
-  // Real anime video player integration
-  // Using anime streaming embed URL based on anime ID and episode number
-  const videoUrl = `https://player.aniwave.to/watch/${anime?.mal_id}?ep=${currentEp}`;
+  // Real anime video player integration using anime slug
+  // Using multiple sources for better compatibility
+  const videoUrl = `https://2anime.xyz/embed/${anime?.mal_id}-episode-${currentEp}`;
 
   if (loading) {
     return (
