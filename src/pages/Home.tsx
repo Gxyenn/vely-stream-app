@@ -171,7 +171,7 @@ const Home = () => {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {seasonal.map((anime) => (
-                <AnimeCard key={anime.mal_id} anime={anime} />
+                <AnimeCard key={anime.mal_id} anime={anime} showNewBadge={anime.status === "Currently Airing"} />
               ))}
             </div>
           )}
@@ -195,7 +195,7 @@ const Home = () => {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {trending.map((anime) => (
-                <AnimeCard key={anime.mal_id} anime={anime} />
+                <AnimeCard key={anime.mal_id} anime={anime} showNewBadge={anime.status === "Currently Airing"} />
               ))}
             </div>
           )}

@@ -68,22 +68,23 @@ const AnimeCard = ({ anime, showNewBadge = false }: AnimeCardProps) => {
           </div>
         </div>
 
-        {/* Status Badge */}
+        {/* New Episode Badge - Top Left */}
+        {(anime.status === "Currently Airing" || showNewBadge) && (
+          <Badge className="absolute top-2 left-2 gradient-primary text-white border-0 font-semibold animate-glow-pulse">
+            Episode Terbaru
+          </Badge>
+        )}
+
+        {/* Status Badge - Top Right */}
         {anime.status === "Currently Airing" && (
-          <Badge className="absolute top-2 right-2 bg-accent text-white border-0 animate-glow-pulse">
+          <Badge className="absolute top-2 right-2 bg-accent text-white border-0">
             Tayang
           </Badge>
         )}
 
-        {showNewBadge && (
-          <Badge className="absolute top-2 left-2 gradient-primary text-white border-0">
-            Baru!
-          </Badge>
-        )}
-
-        {/* Score Badge - Always Visible */}
+        {/* Score Badge - Bottom Left */}
         {score > 0 && (
-          <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/70 px-2 py-1 rounded backdrop-blur-sm">
+          <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/70 px-2 py-1 rounded backdrop-blur-sm">
             <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
             <span className="text-sm font-bold">{score}</span>
           </div>
