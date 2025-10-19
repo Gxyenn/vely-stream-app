@@ -31,6 +31,7 @@ const Home = () => {
   const [watchHistory, setWatchHistory] = useState<WatchHistory[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [recentUpdatedIds, setRecentUpdatedIds] = useState<Set<number>>(new Set());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,19 +53,28 @@ const Home = () => {
       else if (month >= 7 && month <= 9) season = 'summer';
       else if (month >= 10 && month <= 12) season = 'fall';
 
-      const [trendingRes, popularRes, seasonalRes] = await Promise.all([
+      const [trendingRes, popularRes, seasonalRes, recentRes] = await Promise.all([
         fetch("https://api.jikan.moe/v4/top/anime?filter=airing&limit=12"),
         fetch("https://api.jikan.moe/v4/top/anime?filter=bypopularity&limit=12"),
         fetch(`https://api.jikan.moe/v4/seasons/${year}/${season}?limit=12`),
+        fetch("https://api.jikan.moe/v4/watch/episodes?limit=25"),
       ]);
 
       const trendingData = await trendingRes.json();
       const popularData = await popularRes.json();
       const seasonalData = await seasonalRes.json();
+      const recentData = await recentRes.json();
 
       setTrending(trendingData.data || []);
       setPopular(popularData.data || []);
       setSeasonal(seasonalData.data || []);
+
+      const ids = new Set<number>();
+      (recentData.data || []).forEach((item: any) => {
+        const id = item.entry?.mal_id;
+        if (id) ids.add(id);
+      });
+      setRecentUpdatedIds(ids);
     } catch (error) {
       console.error("Error fetching anime:", error);
     } finally {
@@ -171,7 +181,7 @@ const Home = () => {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {seasonal.map((anime) => (
-                <AnimeCard key={anime.mal_id} anime={anime} showNewBadge={anime.status === "Currently Airing"} />
+                <AnimeCard key={anime.mal_id} anime={anime} showNewBadge={recentUpdatedIds.has(anime.mal_id)} />
               ))}
             </div>
           )}
@@ -195,7 +205,7 @@ const Home = () => {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {trending.map((anime) => (
-                <AnimeCard key={anime.mal_id} anime={anime} showNewBadge={anime.status === "Currently Airing"} />
+                <AnimeCard key={anime.mal_id} anime={anime} showNewBadge={recentUpdatedIds.has(anime.mal_id)} />
               ))}
             </div>
           )}
@@ -219,7 +229,7 @@ const Home = () => {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {popular.map((anime) => (
-                <AnimeCard key={anime.mal_id} anime={anime} />
+                <AnimeCard key={anime.mal_id} anime={anime} showNewBadge={recentUpdatedIds.has(anime.mal_id)} />
               ))}
             </div>
           )}

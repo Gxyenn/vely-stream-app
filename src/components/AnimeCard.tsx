@@ -69,7 +69,7 @@ const AnimeCard = ({ anime, showNewBadge = false }: AnimeCardProps) => {
         </div>
 
         {/* New Episode Badge - Top Left */}
-        {(anime.status === "Currently Airing" || showNewBadge) && (
+        {showNewBadge && (
           <Badge className="absolute top-2 left-2 gradient-primary text-white border-0 font-semibold animate-glow-pulse">
             Episode Terbaru
           </Badge>

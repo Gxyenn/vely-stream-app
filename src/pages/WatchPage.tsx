@@ -14,7 +14,9 @@ import VideoPlayer from "@/components/VideoPlayer";
 interface AnimeDetail {
   mal_id: number;
   title: string;
-  episodes: number;
+  title_english?: string;
+  titles?: { type: string; title: string }[];
+  episodes: number | null;
   images: {
     jpg: {
       large_image_url: string;
@@ -76,15 +78,29 @@ const WatchPage = () => {
     }
   };
 
-  const generateEpisodes = () => {
-    // Use actual episode count from API, default to current episode if not available
-    const episodeCount = anime?.episodes || currentEp;
-    return Array.from({ length: episodeCount }, (_, i) => i + 1);
-  };
+const generateEpisodes = () => {
+  // Use actual episode count from API if available; otherwise show up to current episode only
+  const episodeCount = anime?.episodes ?? currentEp;
+  return Array.from({ length: episodeCount }, (_, i) => i + 1);
+};
 
-  const handleEpisodeChange = (ep: number) => {
-    navigate(`/watch/${id}/${ep}`);
-  };
+const handleEpisodeChange = (ep: number) => {
+  navigate(`/watch/${id}/${ep}`);
+};
+
+const getTitleForSlug = (a: AnimeDetail | null): string => {
+  if (!a) return "";
+  const fromTitles = a.titles?.find((t) => t.type === "English")?.title ||
+    a.titles?.find((t) => /Default/i.test(t.type))?.title;
+  // Prefer explicit English title with 'Season' wording when available
+  const base = a.title_english || fromTitles || a.title || "";
+  // Custom adjustments per Samehadaku naming
+  const adjusted = base
+    .replace(/to your eternity/gi, "Fumetsu No Anata")
+    .replace(/part\s*\d+/gi, (m) => m.replace(/part/i, "season"))
+    .trim();
+  return adjusted;
+};
 
 
   const handleShare = async () => {
@@ -153,7 +169,7 @@ const WatchPage = () => {
           {/* Video Player */}
           <div className="mb-6 animate-fade-in">
             <VideoPlayer 
-              animeTitle={anime?.title || ""}
+              animeTitle={getTitleForSlug(anime)}
               episode={currentEp}
               malId={anime?.mal_id || 0}
             />
