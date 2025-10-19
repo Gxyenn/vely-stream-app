@@ -8,7 +8,7 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2 group">
             <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center glow-effect group-hover:animate-glow-pulse">
-              <Play className="w-6 h-6 text-white fill-white" />
+              <span className="text-2xl font-bold text-white">V</span>
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               VelyStream

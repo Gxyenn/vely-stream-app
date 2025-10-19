@@ -158,7 +158,7 @@ const Home = () => {
         <section className="mb-16 animate-fade-in-up">
           <div className="flex items-center gap-3 mb-6">
             <Calendar className="w-6 h-6 text-primary" />
-            <h2 className="text-3xl font-bold">Anime/Donghua Musim Ini</h2>
+            <h2 className="text-3xl font-bold">Anime Musim Ini</h2>
           </div>
           {loading ? (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
@@ -9,6 +9,7 @@ import NavigationBar from "@/components/NavigationBar";
 import Footer from "@/components/Footer";
 import { saveWatchHistory } from "@/lib/localStorage";
 import AnimeCard from "@/components/AnimeCard";
+import VideoPlayer from "@/components/VideoPlayer";
 
 interface AnimeDetail {
   mal_id: number;
@@ -76,8 +77,8 @@ const WatchPage = () => {
   };
 
   const generateEpisodes = () => {
-    // Ensure we use the correct episode count for this specific season/entry
-    const episodeCount = anime?.episodes || 12; // Default to 12 if not available
+    // Use actual episode count from API, default to current episode if not available
+    const episodeCount = anime?.episodes || currentEp;
     return Array.from({ length: episodeCount }, (_, i) => i + 1);
   };
 
@@ -85,22 +86,6 @@ const WatchPage = () => {
     navigate(`/watch/${id}/${ep}`);
   };
 
-  const handleDownload = () => {
-    // Video download functionality
-    const downloadUrl = videoUrl;
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = `${anime?.title}-episode-${currentEp}.mp4`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast({
-      title: "Download Dimulai",
-      description: `Mengunduh ${anime?.title} Episode ${currentEp}`,
-    });
-  };
 
   const handleShare = async () => {
     const shareData = {
@@ -133,10 +118,6 @@ const WatchPage = () => {
   };
 
   const episodes = generateEpisodes();
-  
-  // Real anime video player integration using anime slug
-  // Using multiple sources for better compatibility
-  const videoUrl = `https://2anime.xyz/embed/${anime?.mal_id}-episode-${currentEp}`;
 
   if (loading) {
     return (
@@ -171,14 +152,11 @@ const WatchPage = () => {
         <div className="max-w-6xl mx-auto">
           {/* Video Player */}
           <div className="mb-6 animate-fade-in">
-            <div className="aspect-video bg-black rounded-lg overflow-hidden card-shadow mb-4">
-              <iframe
-                src={videoUrl}
-                className="w-full h-full"
-                allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              />
-            </div>
+            <VideoPlayer 
+              animeTitle={anime?.title || ""}
+              episode={currentEp}
+              malId={anime?.mal_id || 0}
+            />
 
             {/* Video Info */}
             <div className="flex items-center justify-between mb-4">
@@ -188,14 +166,6 @@ const WatchPage = () => {
               </div>
 
               <div className="flex gap-2">
-                <Button
-                  onClick={handleDownload}
-                  variant="outline"
-                  className="border-primary/40 hover:bg-primary/10"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Download
-                </Button>
                 <Button
                   onClick={handleShare}
                   variant="outline"
