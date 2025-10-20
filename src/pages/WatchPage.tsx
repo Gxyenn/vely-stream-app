@@ -169,9 +169,9 @@ const getTitleForSlug = (a: AnimeDetail | null): string => {
           {/* Video Player */}
           <div className="mb-6 animate-fade-in">
             <VideoPlayer 
-              animeTitle={getTitleForSlug(anime)}
+              episodeSlug={`${getTitleForSlug(anime)}-episode-${currentEp}`.toLowerCase().replace(/\s+/g, '-')}
+              animeTitle={anime?.title || ''}
               episode={currentEp}
-              malId={anime?.mal_id || 0}
             />
 
             {/* Video Info */}

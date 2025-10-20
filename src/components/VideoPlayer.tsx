@@ -1,112 +1,121 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { fetchEpisodeStream, VideoSource } from "@/services/animeApi";
 
 interface VideoPlayerProps {
+  episodeSlug: string;
   animeTitle: string;
   episode: number;
-  malId: number;
 }
 
-interface QualityOption {
-  label: string;
-  value: string;
-}
-
-const VideoPlayer = ({ animeTitle, episode, malId }: VideoPlayerProps) => {
-  const [selectedQuality, setSelectedQuality] = useState("360p");
+const VideoPlayer = ({ episodeSlug, animeTitle, episode }: VideoPlayerProps) => {
+  const [selectedQuality, setSelectedQuality] = useState("720p");
   const [showQualities, setShowQualities] = useState(false);
+  const [streamData, setStreamData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [videoSources, setVideoSources] = useState<VideoSource[]>([]);
 
-  // Convert anime title to slug format for Samehadaku
-  const createSlug = (title: string): string => {
-    return title
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/--+/g, '-') // Replace multiple hyphens with single hyphen
-      .trim();
+  useEffect(() => {
+    loadEpisodeData();
+  }, [episodeSlug]);
+
+  const loadEpisodeData = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchEpisodeStream(episodeSlug);
+      
+      if (data) {
+        setStreamData(data);
+        setVideoSources(data.download_links || []);
+      }
+    } catch (error) {
+      console.error('Error loading episode:', error);
+      toast({
+        title: "Error",
+        description: "Gagal memuat video. Silakan coba lagi.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
-
-  const animeSlug = createSlug(animeTitle);
-  
-  // Quality options based on Samehadaku
-  const qualityOptions: QualityOption[] = [
-    { label: "360p", value: "360p" },
-    { label: "480p", value: "480p" },
-    { label: "720p", value: "720p" },
-    { label: "1080p", value: "1080p" },
-    { label: "MP4", value: "mp4" },
-    { label: "MP4HD", value: "mp4hd" },
-    { label: "FULLHD", value: "fullhd" },
-  ];
-
-  // Generate Samehadaku URL
-  const videoUrl = `https://v1.samehadaku.how/${animeSlug}-episode-${episode}/`;
 
   const handleDownload = (quality: string) => {
-    toast({
-      title: "Download Dimulai",
-      description: `Mengunduh ${animeTitle} Episode ${episode} - ${quality}`,
-    });
+    const source = videoSources.find(s => s.quality === quality);
     
-    // Open download link in new tab
-    window.open(videoUrl, '_blank');
+    if (source) {
+      toast({
+        title: "Download Dimulai",
+        description: `Mengunduh ${animeTitle} Episode ${episode} - ${quality}`,
+      });
+      window.open(source.url, '_blank');
+    } else {
+      toast({
+        title: "Tidak Tersedia",
+        description: `Kualitas ${quality} tidak tersedia untuk episode ini`,
+        variant: "destructive",
+      });
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="w-full">
+        <div className="aspect-video bg-black rounded-lg overflow-hidden card-shadow mb-4 flex items-center justify-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
+  const streamUrl = streamData?.iframe_url || streamData?.stream_url;
 
   return (
     <div className="w-full">
       <div className="aspect-video bg-black rounded-lg overflow-hidden card-shadow mb-4 relative">
-        <iframe
-          src={videoUrl}
-          className="w-full h-full"
-          allowFullScreen
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          style={{ border: 'none' }}
-        />
+        {streamUrl ? (
+          <iframe
+            src={streamUrl}
+            className="w-full h-full"
+            allowFullScreen
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            style={{ border: 'none' }}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+            <p>Video tidak tersedia</p>
+          </div>
+        )}
       </div>
 
       {/* Quality and Download Controls */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        <div className="relative">
-          <Button
-            onClick={() => setShowQualities(!showQualities)}
-            variant="outline"
-            className="border-primary/40 hover:bg-primary/10"
-          >
-            Quality: {selectedQuality}
-          </Button>
-          
-          {showQualities && (
-            <div className="absolute top-full mt-2 z-50 glass-effect rounded-lg border border-primary/20 p-2 min-w-[150px]">
-              <div className="grid grid-cols-2 gap-2">
-                {qualityOptions.map((option) => (
-                  <Button
-                    key={option.value}
-                    onClick={() => {
-                      setSelectedQuality(option.label);
-                      setShowQualities(false);
-                      handleDownload(option.label);
-                    }}
-                    variant={selectedQuality === option.label ? "default" : "ghost"}
-                    className="text-sm h-8"
-                  >
-                    {option.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
+      {videoSources.length > 0 && (
+        <div className="glass-effect rounded-lg p-4 mb-4">
+          <h3 className="font-semibold mb-3">Download Episode {episode}</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            {videoSources.map((source, index) => (
+              <Button
+                key={index}
+                onClick={() => {
+                  toast({
+                    title: "Download Dimulai",
+                    description: `Mengunduh ${animeTitle} Episode ${episode} - ${source.quality}`,
+                  });
+                  window.open(source.url, '_blank');
+                }}
+                variant="outline"
+                className="border-primary/40 hover:bg-primary/10 hover:border-primary"
+                size="sm"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {source.quality}
+              </Button>
+            ))}
+          </div>
         </div>
-
-        <Button
-          onClick={() => handleDownload(selectedQuality)}
-          className="gradient-primary"
-        >
-          <Download className="w-4 h-4 mr-2" />
-          Download {selectedQuality}
-        </Button>
-      </div>
+      )}
     </div>
   );
 };

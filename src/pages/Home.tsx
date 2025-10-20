@@ -9,7 +9,9 @@ import Header from "@/components/Header";
 import NavigationBar from "@/components/NavigationBar";
 import Footer from "@/components/Footer";
 import { getWatchHistory, WatchHistory } from "@/lib/localStorage";
+import { fetchHomeAnime, AnimeItem } from "@/services/animeApi";
 
+// Keep compatibility with existing AnimeCard - map AnimeItem to expected format
 interface Anime {
   mal_id: number;
   title: string;
@@ -22,6 +24,7 @@ interface Anime {
   episodes: number;
   status: string;
   genres: Array<{ name: string }>;
+  slug?: string;
 }
 
 const Home = () => {
@@ -39,41 +42,39 @@ const Home = () => {
     setWatchHistory(getWatchHistory());
   }, []);
 
+  // Helper to convert AnimeItem to Anime format for compatibility
+  const mapAnimeItem = (item: AnimeItem, index: number): Anime => ({
+    mal_id: index + 1000, // Generate unique ID
+    title: item.title,
+    slug: item.slug,
+    images: {
+      jpg: {
+        large_image_url: item.poster || '/placeholder.svg'
+      }
+    },
+    score: parseFloat(item.rating || '0'),
+    episodes: item.episode_count || item.current_episode || 0,
+    status: item.status || 'Unknown',
+    genres: (item.genres || []).map(g => ({ name: g }))
+  });
+
   const fetchAnime = async () => {
     try {
       setLoading(true);
       
-      // Get current season
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth() + 1;
-      let season = 'winter';
+      // Fetch from Indonesian anime API
+      const data = await fetchHomeAnime();
       
-      if (month >= 4 && month <= 6) season = 'spring';
-      else if (month >= 7 && month <= 9) season = 'summer';
-      else if (month >= 10 && month <= 12) season = 'fall';
+      const ongoingMapped = data.ongoing.map((item, idx) => mapAnimeItem(item, idx));
+      const completedMapped = data.completed.map((item, idx) => mapAnimeItem(item, idx + 1000));
+      const popularMapped = data.popular.map((item, idx) => mapAnimeItem(item, idx + 2000));
 
-      const [trendingRes, popularRes, seasonalRes, recentRes] = await Promise.all([
-        fetch("https://api.jikan.moe/v4/top/anime?filter=airing&limit=12"),
-        fetch("https://api.jikan.moe/v4/top/anime?filter=bypopularity&limit=12"),
-        fetch(`https://api.jikan.moe/v4/seasons/${year}/${season}?limit=12`),
-        fetch("https://api.jikan.moe/v4/watch/episodes?limit=25"),
-      ]);
+      setSeasonal(ongoingMapped);
+      setTrending(ongoingMapped.slice(0, 12));
+      setPopular(popularMapped.slice(0, 12));
 
-      const trendingData = await trendingRes.json();
-      const popularData = await popularRes.json();
-      const seasonalData = await seasonalRes.json();
-      const recentData = await recentRes.json();
-
-      setTrending(trendingData.data || []);
-      setPopular(popularData.data || []);
-      setSeasonal(seasonalData.data || []);
-
-      const ids = new Set<number>();
-      (recentData.data || []).forEach((item: any) => {
-        const id = item.entry?.mal_id;
-        if (id) ids.add(id);
-      });
+      // Mark ongoing anime as recent
+      const ids = new Set<number>(ongoingMapped.map(a => a.mal_id));
       setRecentUpdatedIds(ids);
     } catch (error) {
       console.error("Error fetching anime:", error);
