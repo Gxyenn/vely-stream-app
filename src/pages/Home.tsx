@@ -9,9 +9,8 @@ import Header from "@/components/Header";
 import NavigationBar from "@/components/NavigationBar";
 import Footer from "@/components/Footer";
 import { getWatchHistory, WatchHistory } from "@/lib/localStorage";
-import { fetchHomeAnime, AnimeItem } from "@/services/animeApi";
+import { toast } from "@/hooks/use-toast";
 
-// Keep compatibility with existing AnimeCard - map AnimeItem to expected format
 interface Anime {
   mal_id: number;
   title: string;
@@ -24,7 +23,6 @@ interface Anime {
   episodes: number;
   status: string;
   genres: Array<{ name: string }>;
-  slug?: string;
 }
 
 const Home = () => {
@@ -38,46 +36,52 @@ const Home = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchAnime();
+    fetchAllAnime();
     setWatchHistory(getWatchHistory());
   }, []);
 
-  // Helper to convert AnimeItem to Anime format for compatibility
-  const mapAnimeItem = (item: AnimeItem, index: number): Anime => ({
-    mal_id: index + 1000, // Generate unique ID
-    title: item.title,
-    slug: item.slug,
-    images: {
-      jpg: {
-        large_image_url: item.poster || '/placeholder.svg'
-      }
-    },
-    score: parseFloat(item.rating || '0'),
-    episodes: item.episode_count || item.current_episode || 0,
-    status: item.status || 'Unknown',
-    genres: (item.genres || []).map(g => ({ name: g }))
-  });
-
-  const fetchAnime = async () => {
+  const fetchAllAnime = async () => {
     try {
       setLoading(true);
       
-      // Fetch from Indonesian anime API
-      const data = await fetchHomeAnime();
+      // Fetch seasonal anime (currently airing)
+      const seasonalResponse = await fetch(
+        "https://api.jikan.moe/v4/seasons/now?limit=12"
+      );
+      const seasonalData = await seasonalResponse.json();
+      setSeasonal(seasonalData.data || []);
+
+      // Fetch trending anime (top airing)
+      const trendingResponse = await fetch(
+        "https://api.jikan.moe/v4/top/anime?filter=airing&limit=12"
+      );
+      const trendingData = await trendingResponse.json();
+      setTrending(trendingData.data || []);
+
+      // Fetch popular anime
+      const popularResponse = await fetch(
+        "https://api.jikan.moe/v4/top/anime?filter=bypopularity&limit=12"
+      );
+      const popularData = await popularResponse.json();
+      setPopular(popularData.data || []);
+
+      // Fetch recently updated episodes
+      const recentResponse = await fetch(
+        "https://api.jikan.moe/v4/watch/episodes"
+      );
+      const recentData = await recentResponse.json();
+      const recentIds = new Set<number>(
+        recentData.data?.map((item: any) => item.entry.mal_id as number) || []
+      );
+      setRecentUpdatedIds(recentIds);
       
-      const ongoingMapped = data.ongoing.map((item, idx) => mapAnimeItem(item, idx));
-      const completedMapped = data.completed.map((item, idx) => mapAnimeItem(item, idx + 1000));
-      const popularMapped = data.popular.map((item, idx) => mapAnimeItem(item, idx + 2000));
-
-      setSeasonal(ongoingMapped);
-      setTrending(ongoingMapped.slice(0, 12));
-      setPopular(popularMapped.slice(0, 12));
-
-      // Mark ongoing anime as recent
-      const ids = new Set<number>(ongoingMapped.map(a => a.mal_id));
-      setRecentUpdatedIds(ids);
     } catch (error) {
       console.error("Error fetching anime:", error);
+      toast({
+        title: "Error",
+        description: "Gagal memuat data anime",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

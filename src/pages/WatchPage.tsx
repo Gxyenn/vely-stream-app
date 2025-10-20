@@ -88,19 +88,6 @@ const handleEpisodeChange = (ep: number) => {
   navigate(`/watch/${id}/${ep}`);
 };
 
-const getTitleForSlug = (a: AnimeDetail | null): string => {
-  if (!a) return "";
-  const fromTitles = a.titles?.find((t) => t.type === "English")?.title ||
-    a.titles?.find((t) => /Default/i.test(t.type))?.title;
-  // Prefer explicit English title with 'Season' wording when available
-  const base = a.title_english || fromTitles || a.title || "";
-  // Custom adjustments per Samehadaku naming
-  const adjusted = base
-    .replace(/to your eternity/gi, "Fumetsu No Anata")
-    .replace(/part\s*\d+/gi, (m) => m.replace(/part/i, "season"))
-    .trim();
-  return adjusted;
-};
 
 
   const handleShare = async () => {
@@ -169,7 +156,6 @@ const getTitleForSlug = (a: AnimeDetail | null): string => {
           {/* Video Player */}
           <div className="mb-6 animate-fade-in">
             <VideoPlayer 
-              episodeSlug={`${getTitleForSlug(anime)}-episode-${currentEp}`.toLowerCase().replace(/\s+/g, '-')}
               animeTitle={anime?.title || ''}
               episode={currentEp}
             />

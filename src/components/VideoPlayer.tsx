@@ -2,34 +2,55 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { fetchEpisodeStream, VideoSource } from "@/services/animeApi";
 
 interface VideoPlayerProps {
-  episodeSlug: string;
   animeTitle: string;
   episode: number;
 }
 
-const VideoPlayer = ({ episodeSlug, animeTitle, episode }: VideoPlayerProps) => {
-  const [selectedQuality, setSelectedQuality] = useState("720p");
-  const [showQualities, setShowQualities] = useState(false);
-  const [streamData, setStreamData] = useState<any>(null);
+interface VideoSource {
+  quality: string;
+  url: string;
+}
+
+const VideoPlayer = ({ animeTitle, episode }: VideoPlayerProps) => {
+  const [streamUrl, setStreamUrl] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [videoSources, setVideoSources] = useState<VideoSource[]>([]);
 
+  // Create Kuronime-style slug from anime title
+  const createKuronimeSlug = (title: string): string => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .trim();
+  };
+
   useEffect(() => {
     loadEpisodeData();
-  }, [episodeSlug]);
+  }, [animeTitle, episode]);
 
   const loadEpisodeData = async () => {
     try {
       setLoading(true);
-      const data = await fetchEpisodeStream(episodeSlug);
       
-      if (data) {
-        setStreamData(data);
-        setVideoSources(data.download_links || []);
-      }
+      // Create Kuronime URL format: nonton-{title}-episode-{number}
+      const slug = createKuronimeSlug(animeTitle);
+      const kuronimeUrl = `https://kuronime.moe/nonton-${slug}-episode-${episode}`;
+      
+      // Set iframe URL directly to Kuronime page
+      setStreamUrl(kuronimeUrl);
+      
+      // Mock download links (Kuronime doesn't provide direct API)
+      setVideoSources([
+        { quality: "360p", url: kuronimeUrl },
+        { quality: "480p", url: kuronimeUrl },
+        { quality: "720p", url: kuronimeUrl },
+        { quality: "1080p", url: kuronimeUrl }
+      ]);
+      
     } catch (error) {
       console.error('Error loading episode:', error);
       toast({
@@ -42,23 +63,6 @@ const VideoPlayer = ({ episodeSlug, animeTitle, episode }: VideoPlayerProps) => 
     }
   };
 
-  const handleDownload = (quality: string) => {
-    const source = videoSources.find(s => s.quality === quality);
-    
-    if (source) {
-      toast({
-        title: "Download Dimulai",
-        description: `Mengunduh ${animeTitle} Episode ${episode} - ${quality}`,
-      });
-      window.open(source.url, '_blank');
-    } else {
-      toast({
-        title: "Tidak Tersedia",
-        description: `Kualitas ${quality} tidak tersedia untuk episode ini`,
-        variant: "destructive",
-      });
-    }
-  };
 
   if (loading) {
     return (
@@ -70,8 +74,6 @@ const VideoPlayer = ({ episodeSlug, animeTitle, episode }: VideoPlayerProps) => 
     );
   }
 
-  const streamUrl = streamData?.iframe_url || streamData?.stream_url;
-
   return (
     <div className="w-full">
       <div className="aspect-video bg-black rounded-lg overflow-hidden card-shadow mb-4 relative">
@@ -82,6 +84,7 @@ const VideoPlayer = ({ episodeSlug, animeTitle, episode }: VideoPlayerProps) => 
             allowFullScreen
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             style={{ border: 'none' }}
+            title={`${animeTitle} Episode ${episode}`}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">

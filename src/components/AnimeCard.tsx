@@ -7,7 +7,6 @@ interface AnimeCardProps {
     mal_id: number;
     title: string;
     name?: string;
-    slug?: string;
     images?: {
       jpg?: {
         large_image_url?: string;
@@ -35,12 +34,9 @@ const AnimeCard = ({ anime, showNewBadge = false }: AnimeCardProps) => {
   const title = anime.title || anime.name || 'Unknown';
   const score = anime.score || 0;
   
-  // Use slug if available (Indonesian API), otherwise use mal_id (Jikan API)
-  const linkTo = anime.slug ? `/anime/${anime.slug}` : `/anime/${anime.mal_id}`;
-  
   return (
     <Link
-      to={linkTo}
+      to={`/anime/${anime.mal_id}`}
       className="group relative block animate-fade-in"
     >
       <div className="relative aspect-[2/3] rounded-lg overflow-hidden card-shadow anime-card">
