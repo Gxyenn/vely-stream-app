@@ -37,6 +37,9 @@ const VideoPlayer = ({ animeTitle, episode }: VideoPlayerProps) => {
 
   useEffect(() => {
     loadEpisodeData();
+    // Auto-refresh episode data every 5 minutes to check for new episodes
+    const interval = setInterval(loadEpisodeData, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, [animeTitle, episode]);
 
   const loadEpisodeData = async () => {
@@ -83,9 +86,9 @@ const VideoPlayer = ({ animeTitle, episode }: VideoPlayerProps) => {
 
   return (
     <div className="w-full">
-      <div className="aspect-video bg-black rounded-lg overflow-hidden card-shadow mb-4 relative group">
+      <div className="aspect-video bg-black rounded-lg overflow-hidden card-shadow mb-4 relative">
         {streamUrl ? (
-          <>
+          <div className="w-full h-full overflow-hidden relative">
             <iframe
               src={streamUrl}
               className="w-full h-full"
@@ -94,27 +97,46 @@ const VideoPlayer = ({ animeTitle, episode }: VideoPlayerProps) => {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
               style={{ 
                 border: 'none',
-                display: 'block'
+                display: 'block',
+                pointerEvents: 'auto',
+                overflow: 'hidden'
               }}
               title={`${animeTitle} Episode ${episode}`}
               referrerPolicy="no-referrer"
+              scrolling="no"
             />
-            
-            {/* Resolution Selector Overlay */}
-            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+            {/* Overlay to block ads and prevent scrolling */}
+            <div className="absolute inset-0 pointer-events-none" />
+          </div>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+            <p>Video tidak tersedia</p>
+          </div>
+        )}
+      </div>
+
+      {/* Download & Resolution Section */}
+      {videoSources.length > 0 && (
+        <div className="glass-effect rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h3 className="font-semibold">Download Episode {episode}</h3>
+              <p className="text-sm text-muted-foreground">Pilih kualitas dan resolusi</p>
+            </div>
+            <div className="flex gap-2">
+              {/* Resolution Selector */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
-                    size="sm"
                     variant="outline"
-                    className="bg-black/80 backdrop-blur-sm border-white/20 hover:bg-black/90 hover:border-white/40 text-white"
+                    className="border-primary/40 hover:bg-primary/10 hover:border-primary"
                   >
                     <Settings className="w-4 h-4 mr-2" />
                     {selectedQuality}
                     <ChevronDown className="w-4 h-4 ml-2" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-36 bg-black/95 backdrop-blur-sm border-white/20">
+                <DropdownMenuContent align="end" className="w-36 z-50 bg-background">
                   {videoSources.map((source, index) => (
                     <DropdownMenuItem
                       key={index}
@@ -125,7 +147,7 @@ const VideoPlayer = ({ animeTitle, episode }: VideoPlayerProps) => {
                           description: `Beralih ke kualitas ${source.quality}`,
                         });
                       }}
-                      className={`cursor-pointer text-white hover:bg-white/10 ${
+                      className={`cursor-pointer ${
                         selectedQuality === source.quality ? 'bg-primary/20' : ''
                       }`}
                     >
@@ -136,53 +158,39 @@ const VideoPlayer = ({ animeTitle, episode }: VideoPlayerProps) => {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
-          </>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-            <p>Video tidak tersedia</p>
-          </div>
-        )}
-      </div>
 
-      {/* Download Section */}
-      {videoSources.length > 0 && (
-        <div className="glass-effect rounded-lg p-4 mb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold">Download Episode {episode}</h3>
-              <p className="text-sm text-muted-foreground">Pilih kualitas video untuk diunduh</p>
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline"
-                  className="border-primary/40 hover:bg-primary/10 hover:border-primary"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Download
-                  <ChevronDown className="w-4 h-4 ml-2" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 z-50 bg-background">
-                {videoSources.map((source, index) => (
-                  <DropdownMenuItem
-                    key={index}
-                    onClick={() => {
-                      toast({
-                        title: "Download Dimulai",
-                        description: `Mengunduh ${animeTitle} Episode ${episode} - ${source.quality}`,
-                      });
-                      window.open(source.url, '_blank');
-                    }}
-                    className="cursor-pointer"
+              {/* Download Button */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="outline"
+                    className="border-primary/40 hover:bg-primary/10 hover:border-primary"
                   >
                     <Download className="w-4 h-4 mr-2" />
-                    {source.quality}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    Download
+                    <ChevronDown className="w-4 h-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 z-50 bg-background">
+                  {videoSources.map((source, index) => (
+                    <DropdownMenuItem
+                      key={index}
+                      onClick={() => {
+                        toast({
+                          title: "Download Dimulai",
+                          description: `Mengunduh ${animeTitle} Episode ${episode} - ${source.quality}`,
+                        });
+                        window.open(source.url, '_blank');
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      {source.quality}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
       )}

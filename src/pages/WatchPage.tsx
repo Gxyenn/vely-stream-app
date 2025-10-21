@@ -43,6 +43,13 @@ const WatchPage = () => {
     fetchAnimeDetail();
     fetchRecommendedAnime();
     fetchAiredEpisodes();
+    
+    // Auto-refresh for new episodes every 5 minutes
+    const interval = setInterval(() => {
+      fetchAiredEpisodes();
+    }, 5 * 60 * 1000);
+    
+    return () => clearInterval(interval);
   }, [id]);
 
   useEffect(() => {
@@ -96,9 +103,9 @@ const WatchPage = () => {
       } else {
         // If no episodes list, check if anime is airing and estimate
         if (anime?.status === "Currently Airing" || anime?.airing) {
-          // For airing anime, use a generous estimate
-          // Most anime have 12-13 episodes per season, ongoing might have more
-          const estimatedEpisodes = Math.max(currentEp + 10, 24);
+          // For airing anime, be more generous with estimates
+          // Weekly releases typically, so estimate based on current episode
+          const estimatedEpisodes = Math.max(currentEp + 12, 24);
           setAiredEpisodeCount(estimatedEpisodes);
         } else {
           // Use anime episodes count or current episode as fallback
@@ -107,9 +114,9 @@ const WatchPage = () => {
       }
     } catch (err) {
       console.error("Error fetching episodes:", err);
-      // Fallback for airing anime
+      // Fallback for airing anime with aggressive estimates
       if (anime?.status === "Currently Airing" || anime?.airing) {
-        setAiredEpisodeCount(Math.max(currentEp + 10, 24));
+        setAiredEpisodeCount(Math.max(currentEp + 12, 24));
       } else {
         setAiredEpisodeCount(anime?.episodes || currentEp);
       }
