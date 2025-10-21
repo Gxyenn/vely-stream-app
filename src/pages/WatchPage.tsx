@@ -34,11 +34,13 @@ const WatchPage = () => {
   const [anime, setAnime] = useState<AnimeDetail | null>(null);
   const [recommendedAnime, setRecommendedAnime] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [airedEpisodeCount, setAiredEpisodeCount] = useState<number>(0);
   const currentEp = parseInt(episode || "1");
 
   useEffect(() => {
     fetchAnimeDetail();
     fetchRecommendedAnime();
+    fetchAiredEpisodes();
   }, [id]);
 
   useEffect(() => {
@@ -78,9 +80,23 @@ const WatchPage = () => {
     }
   };
 
+  const fetchAiredEpisodes = async () => {
+    try {
+      const res = await fetch(`https://api.jikan.moe/v4/anime/${id}/episodes?limit=100`);
+      const json = await res.json();
+      const list = Array.isArray(json.data) ? json.data : [];
+      // Count episodes that have aired
+      const aired = list.filter((ep: any) => ep.aired).length || list.length;
+      setAiredEpisodeCount(aired > 0 ? aired : (anime?.episodes || currentEp));
+    } catch (err) {
+      console.error("Error fetching episodes:", err);
+      setAiredEpisodeCount(anime?.episodes || currentEp);
+    }
+  };
+
 const generateEpisodes = () => {
-  // Use actual episode count from API if available; otherwise show up to current episode only
-  const episodeCount = anime?.episodes ?? currentEp;
+  // Use aired episode count for more accuracy, fallback to anime episodes or current ep
+  const episodeCount = airedEpisodeCount || anime?.episodes || currentEp;
   return Array.from({ length: episodeCount }, (_, i) => i + 1);
 };
 
@@ -195,7 +211,7 @@ const handleEpisodeChange = (ep: number) => {
 
               <Button
                 onClick={() => handleEpisodeChange(currentEp + 1)}
-                disabled={!anime?.episodes || currentEp >= anime.episodes}
+                disabled={currentEp >= (airedEpisodeCount || anime?.episodes || currentEp)}
                 variant="outline"
                 className="border-primary/40 hover:bg-primary/10 shrink-0"
               >
@@ -230,7 +246,7 @@ const handleEpisodeChange = (ep: number) => {
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Total Episode</p>
-                <p className="font-medium">{anime?.episodes || "Unknown"}</p>
+                <p className="font-medium">{airedEpisodeCount || anime?.episodes || "Unknown"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Episode Saat Ini</p>

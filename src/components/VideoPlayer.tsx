@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
 
 interface VideoPlayerProps {
@@ -82,7 +88,8 @@ const VideoPlayer = ({ animeTitle, episode }: VideoPlayerProps) => {
             src={streamUrl}
             className="w-full h-full"
             allowFullScreen
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             style={{ border: 'none' }}
             title={`${animeTitle} Episode ${episode}`}
           />
@@ -93,29 +100,41 @@ const VideoPlayer = ({ animeTitle, episode }: VideoPlayerProps) => {
         )}
       </div>
 
-      {/* Quality and Download Controls */}
+      {/* Download Dropdown */}
       {videoSources.length > 0 && (
         <div className="glass-effect rounded-lg p-4 mb-4">
-          <h3 className="font-semibold mb-3">Download Episode {episode}</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-            {videoSources.map((source, index) => (
-              <Button
-                key={index}
-                onClick={() => {
-                  toast({
-                    title: "Download Dimulai",
-                    description: `Mengunduh ${animeTitle} Episode ${episode} - ${source.quality}`,
-                  });
-                  window.open(source.url, '_blank');
-                }}
-                variant="outline"
-                className="border-primary/40 hover:bg-primary/10 hover:border-primary"
-                size="sm"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                {source.quality}
-              </Button>
-            ))}
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">Download Episode {episode}</h3>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline"
+                  className="border-primary/40 hover:bg-primary/10 hover:border-primary"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Pilih Kualitas
+                  <ChevronDown className="w-4 h-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {videoSources.map((source, index) => (
+                  <DropdownMenuItem
+                    key={index}
+                    onClick={() => {
+                      toast({
+                        title: "Download Dimulai",
+                        description: `Mengunduh ${animeTitle} Episode ${episode} - ${source.quality}`,
+                      });
+                      window.open(source.url, '_blank');
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download {source.quality}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       )}
