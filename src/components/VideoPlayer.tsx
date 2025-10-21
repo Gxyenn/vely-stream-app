@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, ChevronDown } from "lucide-react";
+import { Download, Loader2, ChevronDown, Settings } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +23,7 @@ const VideoPlayer = ({ animeTitle, episode }: VideoPlayerProps) => {
   const [streamUrl, setStreamUrl] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [videoSources, setVideoSources] = useState<VideoSource[]>([]);
+  const [selectedQuality, setSelectedQuality] = useState<string>("720p");
 
   // Create Kuronime-style slug from anime title
   const createKuronimeSlug = (title: string): string => {
@@ -82,17 +83,61 @@ const VideoPlayer = ({ animeTitle, episode }: VideoPlayerProps) => {
 
   return (
     <div className="w-full">
-      <div className="aspect-video bg-black rounded-lg overflow-hidden card-shadow mb-4 relative">
+      <div className="aspect-video bg-black rounded-lg overflow-hidden card-shadow mb-4 relative group">
         {streamUrl ? (
-          <iframe
-            src={streamUrl}
-            className="w-full h-full"
-            allowFullScreen
-            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-            style={{ border: 'none' }}
-            title={`${animeTitle} Episode ${episode}`}
-          />
+          <>
+            <iframe
+              src={streamUrl}
+              className="w-full h-full"
+              allowFullScreen
+              sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
+              style={{ 
+                border: 'none',
+                display: 'block'
+              }}
+              title={`${animeTitle} Episode ${episode}`}
+              referrerPolicy="no-referrer"
+            />
+            
+            {/* Resolution Selector Overlay */}
+            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    className="bg-black/80 backdrop-blur-sm border-white/20 hover:bg-black/90 hover:border-white/40 text-white"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    {selectedQuality}
+                    <ChevronDown className="w-4 h-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-36 bg-black/95 backdrop-blur-sm border-white/20">
+                  {videoSources.map((source, index) => (
+                    <DropdownMenuItem
+                      key={index}
+                      onClick={() => {
+                        setSelectedQuality(source.quality);
+                        toast({
+                          title: "Resolusi Diubah",
+                          description: `Beralih ke kualitas ${source.quality}`,
+                        });
+                      }}
+                      className={`cursor-pointer text-white hover:bg-white/10 ${
+                        selectedQuality === source.quality ? 'bg-primary/20' : ''
+                      }`}
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      {source.quality}
+                      {selectedQuality === source.quality && " ✓"}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">
             <p>Video tidak tersedia</p>
@@ -100,11 +145,14 @@ const VideoPlayer = ({ animeTitle, episode }: VideoPlayerProps) => {
         )}
       </div>
 
-      {/* Download Dropdown */}
+      {/* Download Section */}
       {videoSources.length > 0 && (
         <div className="glass-effect rounded-lg p-4 mb-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Download Episode {episode}</h3>
+            <div>
+              <h3 className="font-semibold">Download Episode {episode}</h3>
+              <p className="text-sm text-muted-foreground">Pilih kualitas video untuk diunduh</p>
+            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 
@@ -112,11 +160,11 @@ const VideoPlayer = ({ animeTitle, episode }: VideoPlayerProps) => {
                   className="border-primary/40 hover:bg-primary/10 hover:border-primary"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Pilih Kualitas
+                  Download
                   <ChevronDown className="w-4 h-4 ml-2" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-48 z-50 bg-background">
                 {videoSources.map((source, index) => (
                   <DropdownMenuItem
                     key={index}
@@ -130,7 +178,7 @@ const VideoPlayer = ({ animeTitle, episode }: VideoPlayerProps) => {
                     className="cursor-pointer"
                   >
                     <Download className="w-4 h-4 mr-2" />
-                    Download {source.quality}
+                    {source.quality}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>

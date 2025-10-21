@@ -17,6 +17,8 @@ interface AnimeDetail {
   title_english?: string;
   titles?: { type: string; title: string }[];
   episodes: number | null;
+  status?: string;
+  airing?: boolean;
   images: {
     jpg: {
       large_image_url: string;
@@ -82,15 +84,35 @@ const WatchPage = () => {
 
   const fetchAiredEpisodes = async () => {
     try {
-      const res = await fetch(`https://api.jikan.moe/v4/anime/${id}/episodes?limit=100`);
+      // First, try to get episodes list
+      const res = await fetch(`https://api.jikan.moe/v4/anime/${id}/episodes?limit=200`);
       const json = await res.json();
       const list = Array.isArray(json.data) ? json.data : [];
-      // Count episodes that have aired
-      const aired = list.filter((ep: any) => ep.aired).length || list.length;
-      setAiredEpisodeCount(aired > 0 ? aired : (anime?.episodes || currentEp));
+      
+      if (list.length > 0) {
+        // Count episodes that have aired
+        const aired = list.filter((ep: any) => ep.aired).length || list.length;
+        setAiredEpisodeCount(aired);
+      } else {
+        // If no episodes list, check if anime is airing and estimate
+        if (anime?.status === "Currently Airing" || anime?.airing) {
+          // For airing anime, use a generous estimate
+          // Most anime have 12-13 episodes per season, ongoing might have more
+          const estimatedEpisodes = Math.max(currentEp + 10, 24);
+          setAiredEpisodeCount(estimatedEpisodes);
+        } else {
+          // Use anime episodes count or current episode as fallback
+          setAiredEpisodeCount(anime?.episodes || currentEp);
+        }
+      }
     } catch (err) {
       console.error("Error fetching episodes:", err);
-      setAiredEpisodeCount(anime?.episodes || currentEp);
+      // Fallback for airing anime
+      if (anime?.status === "Currently Airing" || anime?.airing) {
+        setAiredEpisodeCount(Math.max(currentEp + 10, 24));
+      } else {
+        setAiredEpisodeCount(anime?.episodes || currentEp);
+      }
     }
   };
 
