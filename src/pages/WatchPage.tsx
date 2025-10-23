@@ -186,20 +186,20 @@ const handleEpisodeChange = (ep: number) => {
       <Header />
       <NavigationBar />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4">
         {/* Back Button */}
         <Button
           variant="ghost"
           onClick={() => navigate(`/anime/${id}`)}
-          className="mb-6 hover:bg-secondary"
+          className="mb-4 hover:bg-secondary"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Kembali ke Detail
         </Button>
 
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           {/* Video Player */}
-          <div className="mb-6 animate-fade-in">
+          <div className="mb-4 animate-fade-in">
             <VideoPlayer 
               animeTitle={anime?.title || ''}
               episode={currentEp}
