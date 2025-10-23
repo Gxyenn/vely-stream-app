@@ -99,14 +99,20 @@ const VideoPlayer = ({ animeTitle, episode }: VideoPlayerProps) => {
                 border: 'none',
                 display: 'block',
                 pointerEvents: 'auto',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                transform: 'scale(1.3) translateY(-15%)',
+                transformOrigin: 'center center',
+                width: '100%',
+                height: '130%',
+                marginTop: '-15%'
               }}
               title={`${animeTitle} Episode ${episode}`}
               referrerPolicy="no-referrer"
               scrolling="no"
             />
-            {/* Overlay to block ads and prevent scrolling */}
-            <div className="absolute inset-0 pointer-events-none" />
+            {/* Overlay to block ads at top and bottom */}
+            <div className="absolute top-0 left-0 right-0 h-16 bg-black pointer-events-none z-10" />
+            <div className="absolute bottom-0 left-0 right-0 h-16 bg-black pointer-events-none z-10" />
           </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">
